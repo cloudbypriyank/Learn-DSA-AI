@@ -1,4 +1,4 @@
-# DSA AI Teacher
+# DSA AI 
 
 An AI-powered data structures and algorithms tutor that turns a topic into a written explanation, a short visual lesson, and voice narration.
 
