@@ -58,6 +58,9 @@ function App() {
     window.setTimeout(() => setCopied(false), 1600);
   }
 
+  const kind = useMemo(() => (SUGGESTED_TOPICS.includes(topic) ? "core" : "custom"), [topic]);
+  const tagline = useMemo(() => `${topic} is a ${kind.toUpperCase()} DSA – Check it out this video to learn!`, [topic, kind]);
+
   return (
     <main className="app-shell">
       <div className="topbar">
@@ -134,7 +137,8 @@ function App() {
                 <span>{result.generated_at_ms ? `${result.generated_at_ms}ms` : "Generated"}</span>
               </div>
             </div>
-            <LessonVideo topic={result.topic} script={result.video_script} audioSource={audioSource} />
+            const tagline = `${result.topic} is a DSA – Check it out this video to learn!`;
+<LessonVideo topic={result.topic} script={result.video_script} audioSource={audioSource} tagline={tagline} />
             {result.audio_error && <div className="status warning">{result.audio_error}</div>}
             <div className="answer-toolbar">
               <h3>Text answer</h3>
