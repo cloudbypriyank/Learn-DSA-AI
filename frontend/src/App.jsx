@@ -138,7 +138,7 @@ function App() {
               </div>
             </div>
             const tagline = `${result.topic} is a DSA – Check it out this video to learn!`;
-<LessonVideo topic={result.topic} script={result.video_script} audioSource={audioSource} tagline={tagline} />
+            <LessonVideo topic={result.topic} script={result.video_script} audioSource={audioSource} tagline={tagline} />
             {result.audio_error && <div className="status warning">{result.audio_error}</div>}
             <div className="answer-toolbar">
               <h3>Text answer</h3>
