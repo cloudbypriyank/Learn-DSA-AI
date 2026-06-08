@@ -11,6 +11,7 @@ function App() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [showPracticeModal, setShowPracticeModal] = useState(false);
 
   const audioSource = useMemo(() => {
     if (!result?.audio_base64) return "";
@@ -66,7 +67,7 @@ function App() {
       <div className="topbar">
         <div className="brand-mark">DSA</div>
         <div>
-          <strong>AI Teacher Studio</strong>
+          <strong>DSA AI Teacher Studio</strong>
           <span>HF cloud inference + visual lessons</span>
         </div>
       </div>
@@ -74,7 +75,7 @@ function App() {
       <section className="teacher-panel" aria-labelledby="page-title">
         <div className="intro">
           <p className="eyebrow">Cloud powered DSA learning</p>
-          <h1 id="page-title">DSA AI Teacher</h1>
+          <h1 id="page-title">Learn DSA visually</h1>
           <p>
             Type a data structures or algorithms topic and get a short visual lesson, voice, and text answer.
           </p>
@@ -137,7 +138,6 @@ function App() {
                 <span>{result.generated_at_ms ? `${result.generated_at_ms}ms` : "Generated"}</span>
               </div>
             </div>
-            const tagline = `${result.topic} is a DSA – Check it out this video to learn!`;
             <LessonVideo topic={result.topic} script={result.video_script} audioSource={audioSource} tagline={tagline} />
             {result.audio_error && <div className="status warning">{result.audio_error}</div>}
             <div className="answer-toolbar">
@@ -152,8 +152,57 @@ function App() {
                 Your browser does not support the audio player.
               </audio>
             )}
+            <div style={{display: 'flex', gap: 10, marginTop: 12}}>
+              <button type="button" onClick={() => setShowPracticeModal(true)}>
+                Show practice questions
+              </button>
+              <a href={`https://leetcode.com/problemset/all/?search=${encodeURIComponent(result.topic)}`} target="_blank" rel="noreferrer">
+                Search LeetCode
+              </a>
+              <a href={`https://codeforces.com/problemset?tags=${encodeURIComponent(result.topic.toLowerCase())}`} target="_blank" rel="noreferrer">
+                Search Codeforces
+              </a>
+            </div>
           </article>
         )}
+
+      {showPracticeModal && result && (
+        <div className="modal-backdrop" role="dialog" aria-modal="true">
+          <div className="question-modal">
+            <div className="modal-header">
+              <div className="mac-controls">
+                <span className="dot" title="minimize">–</span>
+                <span className="dot" title="maximize">▢</span>
+                <span className="dot" title="close">✕</span>
+              </div>
+              <h3>Practice questions for {result.topic}</h3>
+              <button className="modal-close" aria-label="Close" onClick={() => setShowPracticeModal(false)}>✕</button>
+            </div>
+
+            <div className="practice-body">
+              <div className="practice-column">
+                <h4>LeetCode</h4>
+                <p>Open collection:</p>
+                <a href={`https://leetcode.com/tag/${result.topic.toLowerCase()}/`} target="_blank" rel="noreferrer">LeetCode tag: {result.topic}</a>
+                <div className="question-grid">
+                  <a href="https://leetcode.com/problems/two-sum/" target="_blank" rel="noreferrer"><span>Easy</span><strong>Two Sum</strong><small>LeetCode</small></a>
+                  <a href="https://leetcode.com/problems/maximum-subarray/" target="_blank" rel="noreferrer"><span>Easy</span><strong>Maximum Subarray</strong><small>LeetCode</small></a>
+                </div>
+              </div>
+
+              <div className="practice-column">
+                <h4>Codeforces</h4>
+                <p>Open collection:</p>
+                <a href={`https://codeforces.com/problemset?tags=${result.topic.toLowerCase()}`} target="_blank" rel="noreferrer">Codeforces tag: {result.topic}</a>
+                <div className="question-grid">
+                  <a href="https://codeforces.com/problemset/problem/1418/A" target="_blank" rel="noreferrer"><span>Easy</span><strong>Buying A House?</strong><small>Codeforces</small></a>
+                  <a href="https://codeforces.com/problemset/problem/1490/A" target="_blank" rel="noreferrer"><span>Easy</span><strong>Dense Array</strong><small>Codeforces</small></a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       </section>
     </main>
   );
