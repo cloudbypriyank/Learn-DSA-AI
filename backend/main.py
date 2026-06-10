@@ -89,7 +89,7 @@ class TeachResponse(BaseModel):
     generated_at_ms: int = 0
     voice: str = TTS_VOICE
 
-
+#Prompt engineering is the process of designing and refining the input prompts given to AI models to elicit desired responses. In this code, the build_prompt function constructs a detailed prompt for a language model, instructing it to generate both a text answer and a video script based on a given topic and voice preference. The prompt includes specific rules for how the text answer and video script should be structured, as well as language guidelines based on the selected voice. This careful crafting of the prompt helps ensure that the AI generates content that is relevant, clear, and appropriately tailored to the user's needs.
 def build_prompt(topic: str, voice: str) -> str:
     """Create separate text-answer and visual-video instructions."""
     if voice.startswith("hi-IN"):
