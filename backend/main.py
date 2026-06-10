@@ -19,6 +19,7 @@ from pydantic import BaseModel, Field
 
 load_dotenv()
 
+# Ensure ALL Dependencies are installed before starting the API, so users don't get partial failures after waiting for the model response.
 HF_TOKEN = os.getenv("HF_TOKEN")
 HF_MODEL = os.getenv("HF_MODEL", "Qwen/Qwen2.5-7B-Instruct")
 FRONTEND_ORIGIN = os.getenv("FRONTEND_ORIGIN", "http://localhost:5173")
