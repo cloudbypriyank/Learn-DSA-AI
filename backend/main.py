@@ -44,7 +44,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger("dsa-ai-teacher")
 
-
+# Create FastAPI app and add CORS middleware to allow requests from the frontend origin.
 app = FastAPI(title="DSA AI Teacher API", version="1.0.0")
 
 app.add_middleware(
