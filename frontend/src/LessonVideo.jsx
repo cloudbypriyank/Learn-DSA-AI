@@ -2,41 +2,167 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 const VIDEO_SECONDS = 110;
 
+// Theme and styling constants
+const THEME = {
+  // Background gradients\\
+  bgGradient: [
+    { stop: 0, color: "#0a1929" },
+    { stop: 0.3, color: "#0f2847" },
+    { stop: 0.7, color: "#051e3e" },
+    { stop: 1, color: "#030e1f" },
+  ],
+  
+  // Header bar
+  headerBg: "rgba(103, 232, 249, 0.15)",
+  headerBorder: "rgba(103, 232, 249, 0.25)",
+  headerBorderWidth: 2,
+  
+  // Title
+  titleColor: "rgba(103, 232, 249, 0.8)",
+  titleFont: "800 32px Inter, sans-serif",
+  titleGlowColor: "rgba(103, 232, 249, 0.6)",
+  titleGlowBlur: 12,
+  
+  // Subtitle
+  subtitleColor: "#67e8f9",
+  subtitleFont: "700 15px Inter, sans-serif",
+  
+
+  // Progress bar
+  progressBgColor: "rgba(148, 163, 184, 0.25)",
+  progressStart: "#67e8f9",
+  progressEnd: "#06b6d4",
+  progressHeight: 8,
+  
+  // Data structure colors
+  array: {
+    activeCell: "#dff7f4",
+    inactiveCell: "#ffffff",
+    activeBorder: "#0f766e",
+    inactiveBorder: "#94a3b8",
+    arrowColor: "#ef4444",
+    textColor: "#0f172a",
+    indexColor: "#64748b",
+  },
+  
+  hashmap: {
+    bucketFill: "#ffffff",
+    bucketBorder: "#2563eb",
+    activeFill: "#dff7f4",
+    activeBorder: "#0f766e",
+    textColor: "#0f172a",
+    bucketText: "#1e293b",
+    arrowColor: "#0f766e",
+  },
+  
+  tree: {
+    edgeColor: "#94a3b8",
+    activeFill: "#dbeafe",
+    inactiveFill: "#ffffff",
+    activeBorder: "#2563eb",
+    inactiveBorder: "#94a3b8",
+    textColor: "#0f172a",
+  },
+  
+  graph: {
+    edgeColor: "#0f766e",
+    activeFill: "#fff7ed",
+    inactiveFill: "#ffffff",
+    activeBorder: "#f97316",
+    inactiveBorder: "#94a3b8",
+    textColor: "#0f172a",
+  },
+  
+  stackQueue: {
+    activeFill: "#dbeafe",
+    inactiveFill: "#ffffff",
+    activeBorder: "#2563eb",
+    inactiveBorder: "#94a3b8",
+    textColor: "#0f172a",
+    arrowColor: "#ef4444",
+  },
+  
+  linkedList: {
+    activeFill: "#dff7f4",
+    inactiveFill: "#ffffff",
+    activeBorder: "#0f766e",
+    inactiveBorder: "#94a3b8",
+    textColor: "#0f172a",
+    arrowColor: "#2563eb",
+  },
+  
+  dp: {
+    filledCell: "#dff7f4",
+    emptyCell: "#ffffff",
+    filledBorder: "#0f766e",
+    emptyBorder: "#cbd5e1",
+    textColor: "#0f172a",
+  },
+};
+
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
 }
 
-function wrapText(ctx, text, x, y, maxWidth, lineHeight, maxLines = 4) {
-  const words = text.split(/\s+/).filter(Boolean);
-  const lines = [];
-  let line = "";
+// function wrapText(ctx, text, x, y, maxWidth, lineHeight, maxLines = 2) {
+//   const words = text.split(/\s+/).filter(Boolean);
+//   const lines = [];
+//   let line = "";
 
-  for (const word of words) {
-    const nextLine = line ? `${line} ${word}` : word;
-    if (ctx.measureText(nextLine).width > maxWidth && line) {
-      lines.push(line);
-      line = word;
-    } else {
-      line = nextLine;
-    }
+//   for (let i = 0; i < words.length; i++) {
+//     const word = words[i];
+//     const nextLine = line ? `${line} ${word}` : word;
 
-    if (lines.length === maxLines) break;
-  }
+//     // Check if the current line exceeds width bounds
+//     if (ctx.measureText(nextLine).width > maxWidth && line) {
+//       lines.push(line);
+//       line = word;
+//     } else {
+//       line = nextLine;
+//     }
 
-  if (line && lines.length < maxLines) lines.push(line);
+//     // Engineering Truncation: Handle text bounds constraints for the final allowed line
+//     if (lines.length === maxLines - 1) {
+//       let remainingWords = words.slice(i + 1).join(" ");
+//       let finalLineCandidate = remainingWords ? `${line} ${remainingWords}` : line;
 
-  lines.forEach((item, index) => {
-    ctx.fillText(item, x, y + index * lineHeight);
-  });
-}
+//       // If the rest of the text overflows, systematically strip words and add ellipsis
+//       if (ctx.measureText(finalLineCandidate).width > maxWidth) {
+//         let currentWords = line.split(" ");
+//         while (currentWords.length > 0) {
+//           let testLine = currentWords.join(" ") + "...";
+//           if (ctx.measureText(testLine).width <= maxWidth) {
+//             line = testLine;
+//             break;
+//           }
+//           currentWords.pop();
+//         }
+//       } else {
+//         line = finalLineCandidate;
+//       }
+//       lines.push(line);
+//       line = "";
+//       break;
+//     }
+//   }
+
+//   if (line && lines.length < maxLines) {
+//     lines.push(line);
+//   }
+
+//   // Render the processed lines onto the canvas layer grid coordinates
+//   lines.forEach((item, index) => {
+//     ctx.fillText(item, x, y + index * lineHeight);
+//   });
+// }
+
 
 function getLessonPoints(script) {
   return script
     .replace(/\*\*/g, "")
-    .split(/\n|(?<=\.)\s+/)
-    .map((line) => line.replace(/^[-#*\d.\s]+/, "").trim())
-    .filter((line) => line.length > 24)
-    .slice(0, 7);
+    .split(/[.!?]+/)
+    .map(line => line.trim())
+    .filter(line => line.length > 5);
 }
 
 function getTopicKind(topic) {
@@ -76,21 +202,21 @@ function drawArray(ctx, progress) {
   values.forEach((value, index) => {
     const x = startX + index * cell;
     const active = index <= Math.floor(progress * values.length);
-    ctx.fillStyle = active ? "#dff7f4" : "#ffffff";
-    ctx.strokeStyle = active ? "#0f766e" : "#94a3b8";
+    ctx.fillStyle = active ? THEME.array.activeCell : THEME.array.inactiveCell;
+    ctx.strokeStyle = active ? THEME.array.activeBorder : THEME.array.inactiveBorder;
     ctx.lineWidth = 3;
     ctx.roundRect(x, y, cell, 64, 8);
     ctx.fill();
     ctx.stroke();
-    ctx.fillStyle = "#0f172a";
+    ctx.fillStyle = THEME.array.textColor;
     ctx.font = "700 22px Inter, sans-serif";
     ctx.textAlign = "center";
     ctx.fillText(value, x + cell / 2, y + 39);
     ctx.font = "600 13px Inter, sans-serif";
-    ctx.fillStyle = "#64748b";
+    ctx.fillStyle = THEME.array.indexColor;
     ctx.fillText(index, x + cell / 2, y + 91);
   });
-  drawArrow(ctx, 145 + progress * 330, 190, 145 + progress * 330, 238, "#ef4444");
+  drawArrow(ctx, 145 + progress * 330, 190, 145 + progress * 330, 238, THEME.array.arrowColor);
 }
 
 function drawHashMap(ctx, progress) {
@@ -98,27 +224,27 @@ function drawHashMap(ctx, progress) {
   const buckets = ["0", "1", "2", "3"];
   buckets.forEach((bucket, index) => {
     const y = 160 + index * 70;
-    ctx.fillStyle = "#ffffff";
-    ctx.strokeStyle = "#2563eb";
+    ctx.fillStyle = THEME.hashmap.bucketFill;
+    ctx.strokeStyle = THEME.hashmap.bucketBorder;
     ctx.lineWidth = 3;
     ctx.roundRect(120, y, 90, 48, 8);
     ctx.fill();
     ctx.stroke();
-    ctx.fillStyle = "#1e293b";
+    ctx.fillStyle = THEME.hashmap.bucketText;
     ctx.font = "700 18px Inter, sans-serif";
     ctx.textAlign = "center";
     ctx.fillText(bucket, 165, y + 31);
 
     const visible = progress * keys.length > index;
     if (visible) {
-      ctx.fillStyle = "#dff7f4";
-      ctx.strokeStyle = "#0f766e";
+      ctx.fillStyle = THEME.hashmap.activeFill;
+      ctx.strokeStyle = THEME.hashmap.activeBorder;
       ctx.roundRect(290, y, 170, 48, 8);
       ctx.fill();
       ctx.stroke();
-      ctx.fillStyle = "#0f172a";
+      ctx.fillStyle = THEME.hashmap.textColor;
       ctx.fillText(`${keys[index]} -> ${index * 11 + 7}`, 375, y + 31);
-      drawArrow(ctx, 213, y + 24, 286, y + 24, "#0f766e");
+      drawArrow(ctx, 213, y + 24, 286, y + 24, THEME.hashmap.arrowColor);
     }
   });
 }
@@ -281,38 +407,72 @@ function drawFrame(canvas, topic, point, kind, elapsed, isEnded) {
   const sceneProgress = (progress * 7) % 1;
 
   ctx.clearRect(0, 0, width, height);
+  
+  // Enhanced background gradient
   const bg = ctx.createLinearGradient(0, 0, width, height);
-  bg.addColorStop(0, "#08111f");
-  bg.addColorStop(0.5, "#0f172a");
-  bg.addColorStop(1, "#052e3f");
+  THEME.bgGradient.forEach(({ stop, color }) => bg.addColorStop(stop, color));
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, width, height);
-  ctx.fillStyle = "rgba(103, 232, 249, 0.12)";
-  ctx.fillRect(0, 0, width, 92);
-
-  ctx.fillStyle = "#f8fafc";
-  ctx.font = "800 28px Inter, sans-serif";
-  ctx.textAlign = "left";
-  ctx.fillText(topic, 36, 52);
-
-  ctx.fillStyle = "#67e8f9";
-  ctx.font = "700 15px Inter, sans-serif";
-  ctx.fillText(isEnded ? "Lesson complete" : "Animated DSA lesson", 36, 76);
+  
+  // Glowing top header bar with cyan accent
+  ctx.fillStyle = THEME.headerBg;
+  ctx.fillRect(0, 0, width, 100);
+  ctx.strokeStyle = THEME.headerBorder;
+  ctx.lineWidth = THEME.headerBorderWidth;
+  ctx.strokeRect(0, 0, width, 100);
+progressGlow: "rgba(6,182,212,.15)",
 
   drawStructure(ctx, kind, sceneProgress);
 
-  ctx.fillStyle = "rgba(2, 6, 23, 0.82)";
-  ctx.roundRect(28, 428, width - 56, 116, 8);
-  ctx.fill();
-  ctx.fillStyle = "#ffffff";
-  ctx.font = "700 22px Inter, sans-serif";
-  ctx.textAlign = "left";
-  wrapText(ctx, point, 52, 468, width - 104, 28, 3);
+  // Enhanced caption box with better styling
+// Calculate dynamic structural coordinates based on canvas dimensions
 
-  ctx.fillStyle = "rgba(148, 163, 184, 0.35)";
-  ctx.fillRect(36, height - 24, width - 72, 8);
-  ctx.fillStyle = "#67e8f9";
-  ctx.fillRect(36, height - 24, (width - 72) * progress, 8);
+// Render the Sleek Glassmorphism Caption Container Frame
+
+// Render the Highly Scalable Typography
+
+
+  const barX = 36;
+  const barHeight = 6; // Thinner profile looks far cleaner and less bulky
+  const barWidth = width - (barX * 2);
+  const barY = height - barHeight - 16; // Perfectly aligns relative to the frame boundary
+  const progressWidth = barWidth * progress;
+
+  // // Render Background Track Buffer Line
+  // ctx.beginPath();
+  // ctx.fillStyle = THEME.progressBgColor;
+  // ctx.roundRect(barX, barY, barWidth, barHeight, 3);
+  // ctx.fill();
+
+  if (progressWidth > 0) {
+    // Render Dynamic Neon Progress Active Track Fill
+    const gradient = ctx.createLinearGradient(barX, barY, barX + progressWidth, barY);
+    gradient.addColorStop(0, THEME.progressStart);
+    gradient.addColorStop(1, THEME.progressEnd);
+
+    ctx.beginPath();
+    ctx.fillStyle = gradient;
+    ctx.roundRect(barX, barY, progressWidth, barHeight, 3);
+    ctx.fill();
+
+    // Premium feature: Glowing Handle Indicator Knob (Only draws at progress head terminal)
+    const knobX = barX + progressWidth;
+    const knobY = barY + (barHeight / 2);
+    const knobRadius = 5;
+
+    // Render soft radial illumination aura ring behind the handle knob
+    ctx.beginPath();
+    ctx.arc(knobX, knobY, knobRadius + 4, 0, Math.PI * 2);
+    ctx.fillStyle = THEME.progressGlow;
+    ctx.fill();
+
+    // Render solid crisp center indicator point pin core
+    ctx.beginPath();
+    ctx.arc(knobX, knobY, knobRadius, 0, Math.PI * 2);
+    ctx.fillStyle = THEME.progressEnd;
+    ctx.fill();
+  }
+
 }
 
 function LessonVideo({ topic, script, audioSource }) {
@@ -325,26 +485,34 @@ function LessonVideo({ topic, script, audioSource }) {
   const [elapsed, setElapsed] = useState(0);
 
   const points = useMemo(() => getLessonPoints(script), [script]);
+  
   const kind = useMemo(() => getTopicKind(topic), [topic]);
-  const activePoint = points[Math.min(Math.floor((elapsed / VIDEO_SECONDS) * points.length), points.length - 1)] || script;
+const segmentDuration = VIDEO_SECONDS / points.length;
 
+const activePoint =
+  points[Math.floor(elapsed / segmentDuration)] || points[points.length - 1];
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     drawFrame(canvas, topic, activePoint, kind, elapsed, elapsed >= VIDEO_SECONDS);
   }, [activePoint, elapsed, kind, script, topic]);
 
-  useEffect(() => {
-    return () => cancelAnimationFrame(animationRef.current);
-  }, []);
+ useEffect(() => {
+  const interval = setInterval(() => {
+    if (audioRef.current) {
+      setElapsed(audioRef.current.currentTime);
+    }
+  }, 100);
 
-  function tick(now) {
-    const nextElapsed = clamp((now - startedAtRef.current) / 1000, 0, VIDEO_SECONDS);
-    setElapsed(nextElapsed);
+  return () => clearInterval(interval);
+}, []);
+
+  function tick() {
+    const nextElapsed = audioRef.current?.currentTime || 0;
 
     if (nextElapsed >= VIDEO_SECONDS) {
       setIsPlaying(false);
-      if (audioRef.current) audioRef.current.pause();
+      audioRef.current?.pause();
       return;
     }
 
@@ -390,23 +558,61 @@ function LessonVideo({ topic, script, audioSource }) {
   }
 
   return (
-    <section className="lesson-video" aria-label="Generated visual lesson video">
-      <canvas ref={canvasRef} width="960" height="540" />
-      <p className="video-caption">{activePoint}</p>
-      <div className="video-controls">
-        <button type="button" onClick={isPlaying ? pause : play}>
-          {isPlaying ? "Pause video" : "Play video"}
+ <section className="lesson-video" aria-label="Generated visual lesson video">
+  {/* Screen Layer holding Canvas and Embedded Overlay Subtitles */}
+      <div className="video-viewport">
+        <canvas
+          ref={canvasRef}
+          width={1920}
+          height={1080}
+        />
+        <div className="video-caption">
+          {activePoint}
+        </div>
+        {/* Big Interactive Floating Center Controller Button */}
+        <button
+          type="button"
+          className={`center-play-overlay ${!isPlaying ? 'video-is-paused' : ''}`}
+          onClick={isPlaying ? pause : play}
+          aria-label={isPlaying ? "Pause video" : "Play video"}
+        >
+          {isPlaying ? (
+            /* Slick Pause Icon Vector */
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+            </svg>
+          ) : (
+            /* Slick Play Icon Vector */
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M8 5v14l11-7z" />
+            </svg>
+          )}
         </button>
-        <button type="button" onClick={restart}>
-          Restart
-        </button>
-        <span>
-          {Math.floor(elapsed)}s / {VIDEO_SECONDS}s
-        </span>
       </div>
-      {audioSource && <audio ref={audioRef} src={audioSource} preload="auto" />}
-    </section>
-  );
+
+
+    {/* Inline Modern YT Style Control Dashboard */}
+    <div className="video-controls-bar">
+      <div className="control-group">
+       
+
+        <button type="button" className="control-action-btn secondary-btn" onClick={restart}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+          <span>Restart</span>
+        </button>
+      </div>
+
+      <div className="time-telemetry">
+        <span className="current-time">{Math.floor(elapsed)}s</span>
+        <span className="time-divider">/</span>
+        <span className="total-duration">{VIDEO_SECONDS}s</span>
+      </div>
+    </div>
+
+    {audioSource && <audio ref={audioRef} src={audioSource} preload="auto" />}
+  </section>
+);
+
 }
 
 export default LessonVideo;

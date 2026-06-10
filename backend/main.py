@@ -291,7 +291,15 @@ async def generate_lesson_content(topic: str, request_id: str, voice: str) -> di
             {
                 "role": "system",
                 "content": (
-                    "You are a friendly DSA teacher who explains concepts clearly for beginners. "
+                    "You are a friendly DSA teacher who explains concepts clearly for beginners."
+                    "Write video_script as 8 to 12 short narration lines."
+                    "Each line should be on a new line."
+                    "Each line should describe one visual scene."
+                    "Keep each line under 15 words."
+                    "Do not write large paragraphs."
+                    "Make Sure Whatever user will understand the topic easily and the video script should be in a way that it can be visualized on screen with simple drawings. "
+                    "Basically You are the AI behind a DSA learning app that gives students a written explanation and a visual narration for each topic. "
+                    "I Trust on you to create engaging and educational content."
                     f"The video_script must be written in {script_language}. "
                     "The text_answer should stay in simple English unless the user explicitly asks otherwise."
                 ),
@@ -301,10 +309,12 @@ async def generate_lesson_content(topic: str, request_id: str, voice: str) -> di
         "max_tokens": 900,
         "temperature": 0.6,
         "response_format": {"type": "json_object"},
+        
     }
 
     try:
         async with httpx.AsyncClient(timeout=60) as client:
+            
             response = await client.post(HF_API_URL, headers=headers, json=payload)
     except httpx.TimeoutException as exc:
         logger.exception("[%s] HF request timed out", request_id)

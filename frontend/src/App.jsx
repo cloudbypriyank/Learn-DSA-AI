@@ -5,6 +5,55 @@ import LessonVideo from "./LessonVideo.jsx";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 const SUGGESTED_TOPICS = ["Array", "HashMap", "Tree", "Graph", "Binary Search", "Dynamic Programming"];
 
+// Map user topics to CSV visualization tool paths
+const TOPIC_TO_VISUALIZATION_PATH = {
+  "array": "ArrayList",
+  "arraylist": "ArrayList",
+  "linkedlist": "LinkedList",
+  "singly linked list": "LinkedList",
+  "doubly linked list": "DoublyLinkedList",
+  "circular linked list": "CircularlyLinkedList",
+  "stack": "StackArray",
+  "queue": "QueueArray",
+  "deque": "DequeArray",
+  "tree": "BST",
+  "bst": "BST",
+  "binary search tree": "BST",
+  "avl": "AVL",
+  "heap": "Heap",
+  "priority queue": "Heap",
+  "hashmap": "ClosedHash",
+  "hash map": "ClosedHash",
+  "graph": "CreateGraph",
+  "bfs": "BFS",
+  "breadth first search": "BFS",
+  "dfs": "DFS",
+  "depth first search": "DFS",
+  "dijkstra": "Dijkstra",
+  "binary search": "BinarySearch",
+  "bubble sort": "BubbleSort",
+  "insertion sort": "InsertionSort",
+  "selection sort": "SelectionSort",
+  "merge sort": "MergeSort",
+  "quick sort": "Quicksort",
+  "quicksort": "Quicksort",
+  "heap sort": "HeapSort",
+  "kmp": "KMP",
+  "rabin karp": "RabinKarp",
+  "boyer moore": "BoyerMoore",
+  "lcs": "LCS",
+  "longest common subsequence": "LCS",
+  "dynamic programming": "LCS",
+  "skip list": "SkipList",
+  "splay tree": "SplayTree",
+  "trie": "Trie",
+};
+
+function getVisualizationPath(topic) {
+  const normalized = topic.toLowerCase().trim();
+  return TOPIC_TO_VISUALIZATION_PATH[normalized] || "ArrayList";
+}
+
 function App() {
   const [topic, setTopic] = useState("");
   const [result, setResult] = useState(null);
@@ -12,6 +61,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [showPracticeModal, setShowPracticeModal] = useState(false);
+  const [showVisualizationModal, setShowVisualizationModal] = useState(false);
 
   const audioSource = useMemo(() => {
     if (!result?.audio_base64) return "";
@@ -74,7 +124,6 @@ function App() {
 
       <section className="teacher-panel" aria-labelledby="page-title">
         <div className="intro">
-          <p className="eyebrow">Cloud powered DSA learning</p>
           <h1 id="page-title">Learn DSA visually</h1>
           <p>
             Type a data structures or algorithms topic and get a short visual lesson, voice, and text answer.
@@ -87,21 +136,40 @@ function App() {
         </div>
 
         <form className="topic-form" onSubmit={handleSubmit}>
-          <label htmlFor="topic">Topic</label>
           <div className="input-row">
-            <input
-              id="topic"
-              type="text"
-              value={topic}
-              onChange={(event) => setTopic(event.target.value)}
-              placeholder="Try Graph, Binary Search, HashMap..."
-              maxLength={80}
-            />
+            {/* This wrapper groups the text field and voice dropdown side-by-side */}
+            <div className="input-field-group">
+              <input
+                id="topic"
+                type="text"
+                value={topic}
+                onChange={(event) => setTopic(event.target.value)}
+                placeholder="Enter a DSA topic (e.g. 'binary search tree')"
+                maxLength={80}
+              />
+
+              <select
+                aria-label="Select voice for narration"
+                className="voice-select"
+              >
+                <option value="en-US-AriaNeural">English Aria</option>
+                <option value="en-US-GuyNeural">English Guy</option>
+                <option value="mr-IN-AarohiNeural">Marathi Aarohi</option>
+                <option value="mr-IN-ManoharNeural">Marathi Manohar</option>
+                <option value="en-IN-NeerjaNeural">English Neerja</option>
+                <option value="en-IN-PrabhatNeural">English Prabhat</option>
+                <option value="hi-IN-SwaraNeural">Hindi Swara</option>
+                <option value="hi-IN-MadhurNeural">Hindi Madhur</option>
+              </select>
+            </div>
+
+            {/* The main action button sits beautifully centered underneath */}
             <button type="submit" disabled={isLoading}>
               {isLoading ? "Teaching..." : "Explain"}
             </button>
           </div>
         </form>
+
 
         <div className="topic-chips" aria-label="Suggested topics">
           {SUGGESTED_TOPICS.map((item) => (
@@ -116,7 +184,7 @@ function App() {
           <section className="loading-card" aria-live="polite">
             <div>
               <span className="pulse-dot" />
-              Generating text answer, visual script, and voice...
+             <p> Generating text answer, visual script, and voice...</p>
             </div>
             <div className="skeleton-lines">
               <span />
@@ -129,14 +197,7 @@ function App() {
         {result && (
           <article className="result">
             <div className="result-heading">
-              <div>
-                <p className="eyebrow">Lesson ready</p>
-                <h2>{result.topic}</h2>
-              </div>
-              <div className="result-meta">
-                <span>{result.model || "HF model"}</span>
-                <span>{result.generated_at_ms ? `${result.generated_at_ms}ms` : "Generated"}</span>
-              </div>
+
             </div>
             <LessonVideo topic={result.topic} script={result.video_script} audioSource={audioSource} tagline={tagline} />
             {result.audio_error && <div className="status warning">{result.audio_error}</div>}
@@ -147,62 +208,92 @@ function App() {
               </button>
             </div>
             <pre>{result.explanation}</pre>
-            {audioSource && (
-              <audio controls src={audioSource}>
-                Your browser does not support the audio player.
-              </audio>
-            )}
-            <div style={{display: 'flex', gap: 10, marginTop: 12}}>
-              <button type="button" onClick={() => setShowPracticeModal(true)}>
-                Show practice questions
+
+            <div style={{ display: 'flex', gap: 10, marginTop: 12, flexWrap: 'wrap' }}>
+              <button type="button" onClick={() => setShowPracticeModal(true)} className="btn-practice-questions">
+                📊 Show Practice Questions
               </button>
-              <a href={`https://leetcode.com/problemset/all/?search=${encodeURIComponent(result.topic)}`} target="_blank" rel="noreferrer">
-                Search LeetCode
-              </a>
-              <a href={`https://codeforces.com/problemset?tags=${encodeURIComponent(result.topic.toLowerCase())}`} target="_blank" rel="noreferrer">
-                Search Codeforces
-              </a>
+              <button type="button" onClick={() => setShowVisualizationModal(true)} className="btn-visualize-data">
+                🎨 Visualize Data
+              </button>
             </div>
           </article>
         )}
 
-      {showPracticeModal && result && (
-        <div className="modal-backdrop" role="dialog" aria-modal="true">
-          <div className="question-modal">
-            <div className="modal-header">
-              <div className="mac-controls">
-                <span className="dot" title="minimize">–</span>
-                <span className="dot" title="maximize">▢</span>
-                <span className="dot" title="close">✕</span>
-              </div>
-              <h3>Practice questions for {result.topic}</h3>
-              <button className="modal-close" aria-label="Close" onClick={() => setShowPracticeModal(false)}>✕</button>
-            </div>
+        {showPracticeModal && result && (
+          <div className="modal-backdrop" onClick={() => setShowPracticeModal(false)}>
+  {/* Stop click event propagation so clicking inside card doesn't close modal */}
+            <div className="modal-content-card" onClick={(e) => e.stopPropagation()}>
 
-            <div className="practice-body">
-              <div className="practice-column">
-                <h4>LeetCode</h4>
-                <p>Open collection:</p>
-                <a href={`https://leetcode.com/tag/${result.topic.toLowerCase()}/`} target="_blank" rel="noreferrer">LeetCode tag: {result.topic}</a>
-                <div className="question-grid">
-                  <a href="https://leetcode.com/problems/two-sum/" target="_blank" rel="noreferrer"><span>Easy</span><strong>Two Sum</strong><small>LeetCode</small></a>
-                  <a href="https://leetcode.com/problems/maximum-subarray/" target="_blank" rel="noreferrer"><span>Easy</span><strong>Maximum Subarray</strong><small>LeetCode</small></a>
+              <div className="modal-header">
+                <div className="mac-controls">
+                  <span className="dot close" />
+                  <span className="dot minimize" />
+                  <span className="dot maximize" />
                 </div>
+
+                <button type="button" className="modal-close" onClick={() => setShowPracticeModal(false)} aria-label="Close modal">
+                  {/* Crisp Minimal Close Cross Vector */}
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
               </div>
 
-              <div className="practice-column">
-                <h4>Codeforces</h4>
-                <p>Open collection:</p>
-                <a href={`https://codeforces.com/problemset?tags=${result.topic.toLowerCase()}`} target="_blank" rel="noreferrer">Codeforces tag: {result.topic}</a>
-                <div className="question-grid">
-                  <a href="https://codeforces.com/problemset/problem/1418/A" target="_blank" rel="noreferrer"><span>Easy</span><strong>Buying A House?</strong><small>Codeforces</small></a>
-                  <a href="https://codeforces.com/problemset/problem/1490/A" target="_blank" rel="noreferrer"><span>Easy</span><strong>Dense Array</strong><small>Codeforces</small></a>
+              <div className="practice-body">
+                {/* Columns go here inside layout */}
+              </div>
+
+
+
+              <div className="practice-body">
+                <div className="practice-column">
+                  <h4>LeetCode</h4>
+                  <p>Open collection:</p>
+                  <a href={`https://leetcode.com/tag/${result.topic.toLowerCase()}/`} target="_blank" rel="noreferrer">LeetCode tag: {result.topic}</a>
+                  <div className="question-grid">
+                    <a href="https://leetcode.com/problems/two-sum/" target="_blank" rel="noreferrer"><span>Easy</span><strong>Two Sum</strong><small>LeetCode</small></a>
+                    <a href="https://leetcode.com/problems/maximum-subarray/" target="_blank" rel="noreferrer"><span>Easy</span><strong>Maximum Subarray</strong><small>LeetCode</small></a>
+                  </div>
+                </div>
+
+                <div className="practice-column">
+                  <h4>Codeforces</h4>
+                  <p>Open collection:</p>
+                  <a href={`https://codeforces.com/problemset?tags=${result.topic.toLowerCase()}`} target="_blank" rel="noreferrer">Codeforces tag: {result.topic}</a>
+                  <div className="question-grid">
+                    <a href="https://codeforces.com/problemset/problem/1418/A" target="_blank" rel="noreferrer"><span>Easy</span><strong>Buying A House?</strong><small>Codeforces</small></a>
+                    <a href="https://codeforces.com/problemset/problem/1490/A" target="_blank" rel="noreferrer"><span>Easy</span><strong>Dense Array</strong><small>Codeforces</small></a>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+
+        {showVisualizationModal && result && (
+          <div className="modal-backdrop" role="dialog" aria-modal="true">
+            <div className="visualization-modal">
+              <div className="modal-header">
+                <div>
+                  <h3>Visualize Data Structure: {result.topic}</h3>
+                </div>
+                <button
+                  className="modal-close"
+                  aria-label="Close"
+                  onClick={() => setShowVisualizationModal(false)}
+                >
+                  ✕
+                </button>
+              </div>
+              <iframe
+                src={`https://csvistool.com/${getVisualizationPath(result.topic)}`}
+                title={`Visualize ${result.topic}`}
+              />
+            </div>
+          </div>
+        )}
       </section>
     </main>
   );
